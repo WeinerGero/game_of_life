@@ -45,13 +45,13 @@ class Field:
         print(self.size_x, self.size_y)
 
     def draw_field(self, b_color=b_color, scale=scale):
-        for i in range(3, self.size_x-2):
-            pygame.draw.line(self.screen, b_color, [i * scale, 30],
+        for i in range(4, self.size_x-3):       # 121 -> 120 squares
+            pygame.draw.line(self.screen, b_color, [i * scale, 40],
                              [i * scale, self.size_y * scale])
 
-        for i in range(3, self.size_y+1):
-            pygame.draw.line(self.screen, b_color, [30, i * scale],
-                             [self.size_x * scale - 30, i * scale])
+        for i in range(4, self.size_y+1):       # 61 -> 60 squares
+            pygame.draw.line(self.screen, b_color, [40, i * scale],
+                             [self.size_x * scale - 40, i * scale])
 
 
 Window()
