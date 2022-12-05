@@ -82,13 +82,17 @@ class Field:
 
 class ControlGame:
     def __init__(self, pos_mouse, num_button, scale, data):
+        self.pos_mouse = pos_mouse
+        self.num_button = num_button
+        self.scale = scale
+        self.data = data
         print(pos_mouse, num_button)
+        self.choose_button()
 
-    #def detect_buttons(self):
-        # field
-        if 40 <= pos_mouse[0] <= 1240 \
-                and 40 <= pos_mouse[1] <= 640:     # (40,40), (1240, 640)
-            InputOnField(pos_mouse, num_button, scale, data)
+    def choose_button(self):
+        if 40 <= self.pos_mouse[0] <= 1240 \
+                and 40 <= self.pos_mouse[1] <= 640:     # (40,40), (1240, 640)
+            InputOnField(self.pos_mouse, self.num_button, self.scale, self.data)
 
 
 class InputOnField:
@@ -97,7 +101,9 @@ class InputOnField:
         self.x_field = (pos_mouse[0] - 40) // scale     # 0-119
         self.y_field = (pos_mouse[1] - 40) // scale     # 0-59
         self.data = data
+        self.tools()
 
+    def tools(self):
         if self.num_button == 1:
             self.draw()
         elif self.num_button == 3:
@@ -130,6 +136,18 @@ class Matrix:
 class ChangeMatrix:
     def __init__(self, screen_resolution):
         self.data = Matrix(screen_resolution).data
+
+
+class DrawMatrix:
+    def __init__(self, scale, screen, screen_resolution, data):
+        self.scale = scale
+        self.screen = screen
+        self.size_x = int(screen_resolution[0] / 10) - 8
+        self.size_y = int(screen_resolution[1] * 0.8 // 10) - 4
+        self.data = data
+
+    def draw_matrix(self):
+        pass
 
 
 Window()
