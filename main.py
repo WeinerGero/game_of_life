@@ -31,6 +31,7 @@ class Window:
 
         field = Field(screen, screen_resolution)        # initialization Field
         matrix = ChangeMatrix(screen_resolution)              # initialization Matrix
+        draw_matrix = DrawMatrix(field.scale, screen, screen_resolution)
 
         while True:                                     # Main cycle of game
             for event in pygame.event.get():
@@ -38,6 +39,9 @@ class Window:
                     pos_mouse = pygame.mouse.get_pos()
                     ControlGame(pos_mouse, event.button, field.scale,
                                 matrix.data)
+
+                    compare = matrix.comparison_data()
+                    draw_matrix.draw_matrix(compare)
                 if event.type == pygame.constants.QUIT:
                     sys.exit()                          # exit
 
@@ -135,19 +139,38 @@ class Matrix:
 
 class ChangeMatrix:
     def __init__(self, screen_resolution):
+        self.old_data = Matrix(screen_resolution).data
         self.data = Matrix(screen_resolution).data
+
+    def comparison_data(self):
+        compare_data = self.old_data == self.data
+        compare_set = np.where(compare_data == False)
+        print(compare_set)
+        return compare_set
 
 
 class DrawMatrix:
-    def __init__(self, scale, screen, screen_resolution, data):
+    def __init__(self, scale, screen, screen_resolution):
         self.scale = scale
         self.screen = screen
         self.size_x = int(screen_resolution[0] / 10) - 8
         self.size_y = int(screen_resolution[1] * 0.8 // 10) - 4
-        self.data = data
 
-    def draw_matrix(self):
-        pass
+    def convert(self, compare_data):
+        """
+        (array([1, 2, 3, 4], dtype=int64), array([5, 6, 7, 8], dtype=int64))
+        -> [(5, 1), (6, 2), (7, 3), (8, 4)]
+        """
+        coordinates = [coordinate for coordinate in zip(compare_data[1],
+                                                        compare_data[0])]
+        return coordinates
+        print(s)
+
+    def draw_matrix(self, compare_data):
+        if not compare_data:
+            return
+        self.convert(compare_data)
+        # pygame.draw.rect(self.screen, BLACK, ())
 
 
 Window()
