@@ -39,13 +39,12 @@ class Window:
                     pos_mouse = pygame.mouse.get_pos()
                     ControlGame(pos_mouse, event.button, field.scale,
                                 matrix.data)
-
-                    compare = matrix.comparison_data()
-                    draw_matrix.draw_matrix(compare)
                 if event.type == pygame.constants.QUIT:
                     sys.exit()                          # exit
 
             screen.fill(bg_color)                       # create background
+
+            draw_matrix.draw_matrix(matrix.comparison_data())
             field.draw_field()                          # draw field
 
             pygame.display.update()
@@ -146,7 +145,8 @@ class ChangeMatrix:
         compare_data = self.old_data == self.data
         compare_set = np.where(compare_data == False)
         print(compare_set)
-        return compare_set
+        if compare_set:
+            return compare_set
 
 
 class DrawMatrix:
@@ -164,13 +164,18 @@ class DrawMatrix:
         coordinates = [coordinate for coordinate in zip(compare_data[1],
                                                         compare_data[0])]
         return coordinates
-        print(s)
 
     def draw_matrix(self, compare_data):
         if not compare_data:
             return
-        self.convert(compare_data)
-        # pygame.draw.rect(self.screen, BLACK, ())
+        coordinates = self.convert(compare_data)
+
+        for coordinate in coordinates:
+            pygame.draw.rect(self.screen, BLACK, (
+                40 + self.scale * coordinate[0],
+                40 + self.scale * coordinate[1],
+                self.scale, self.scale
+            ))
 
 
 Window()
