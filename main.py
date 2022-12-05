@@ -84,6 +84,9 @@ class Field:
 
 
 class ControlGame:
+    """
+        Class for control game
+    """
     def __init__(self, pos_mouse, num_button, scale, data):
         self.pos_mouse = pos_mouse
         self.num_button = num_button
@@ -93,13 +96,27 @@ class ControlGame:
         self.choose_button()
 
     def choose_button(self):
+        """
+            Method for looking buttons
+        :return: None
+        """
         if 40 <= self.pos_mouse[0] <= 1240 \
                 and 40 <= self.pos_mouse[1] <= 640:     # (40,40), (1240, 640)
             InputOnField(self.pos_mouse, self.num_button, self.scale, self.data)
 
 
 class InputOnField:
+    """
+        Class for interaction with field
+    """
     def __init__(self, pos_mouse, num_button, scale, data):
+        """
+            Class for interaction with field
+        :param pos_mouse: position mouse at click
+        :param num_button: number of button mouse
+        :param scale: default is 10
+        :param data: matrix
+        """
         self.num_button = num_button
         self.x_field = (pos_mouse[0] - 40) // scale     # 0-119
         self.y_field = (pos_mouse[1] - 40) // scale     # 0-59
@@ -107,15 +124,27 @@ class InputOnField:
         self.tools()
 
     def tools(self):
+        """
+            Choose tool by button of mouse
+        :return: None
+        """
         if self.num_button == 1:
             self.draw()
         elif self.num_button == 3:
             self.remove()
 
     def draw(self):
+        """
+            Draw on field
+        :return: None
+        """
         self.data[self.y_field, self.x_field] = 1
 
     def remove(self):
+        """
+            Clean drawn cells.
+        :return: None
+        """
         self.data[self.y_field, self.x_field] = 0
 
 
@@ -137,11 +166,22 @@ class Matrix:
 
 
 class ChangeMatrix:
+    """
+        class for change matrix
+    """
     def __init__(self, screen_resolution):
+        """
+            class for change matrix
+        :param screen_resolution: default is 1280x800
+        """
         self.old_data = Matrix(screen_resolution).data
         self.data = Matrix(screen_resolution).data
 
     def comparison_data(self):
+        """
+            Looking for changes
+        :return: compare_set - tuple of 2 1d_arrays
+        """
         compare_data = self.old_data == self.data
         compare_set = np.where(compare_data == False)
         print(compare_set)
@@ -150,7 +190,16 @@ class ChangeMatrix:
 
 
 class DrawMatrix:
+    """
+        class for drawing matrix
+    """
     def __init__(self, scale, screen, screen_resolution):
+        """
+            class for drawing matrix
+        :param scale: default is 10
+        :param screen: control pygame display
+        :param screen_resolution: default is 1280x800
+        """
         self.scale = scale
         self.screen = screen
         self.size_x = int(screen_resolution[0] / 10) - 8
@@ -166,6 +215,11 @@ class DrawMatrix:
         return coordinates
 
     def draw_matrix(self, compare_data):
+        """
+            Draw matrix.
+        :param compare_data:
+        :return: None
+        """
         if not compare_data:
             return
         coordinates = self.convert(compare_data)
