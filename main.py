@@ -65,7 +65,7 @@ class Field:
         self.screen = screen                            # Get screen control
         self.size_x = int(screen_resolution[0] / 10)    # Count cells on x
         self.size_y = int(screen_resolution[1] * 0.8 // 10)  # Count cells on y
-        print(self.size_x, self.size_y)
+        # print(self.size_x, self.size_y)
 
     def draw_field(self, b_color=b_color, scale=scale):
         """
@@ -92,7 +92,7 @@ class ControlGame:
         self.num_button = num_button
         self.scale = scale
         self.data = data
-        print(pos_mouse, num_button)
+        # print(pos_mouse, num_button)
         self.choose_button()
 
     def choose_button(self):
@@ -184,7 +184,6 @@ class ChangeMatrix:
         """
         compare_data = self.old_data == self.data
         compare_set = np.where(compare_data == False)
-        print(compare_set)
         if compare_set:
             return compare_set
 
