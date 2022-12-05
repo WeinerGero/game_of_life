@@ -36,7 +36,8 @@ class Window:
             for event in pygame.event.get():
                 if event.type == pygame.MOUSEBUTTONUP:
                     pos_mouse = pygame.mouse.get_pos()
-                    ControlGame(pos_mouse, event.button)
+                    ControlGame(pos_mouse, event.button, field.scale,
+                                matrix.data)
                 if event.type == pygame.constants.QUIT:
                     sys.exit()                          # exit
 
@@ -80,22 +81,22 @@ class Field:
 
 
 class ControlGame:
-    def __init__(self, pos_mouse, num_button):
-        self.pos_mouse = pos_mouse
-        self.num_button = num_button
+    def __init__(self, pos_mouse, num_button, scale, data):
         print(pos_mouse, num_button)
 
     #def detect_buttons(self):
         # field
-        if 40 <= self.pos_mouse[0] <= 1240 \
-                and 40 <= self.pos_mouse[1] <= 640:     # (40,40), (1240, 640)
-            InputOnField(self.pos_mouse, self.num_button)
+        if 40 <= pos_mouse[0] <= 1240 \
+                and 40 <= pos_mouse[1] <= 640:     # (40,40), (1240, 640)
+            InputOnField(pos_mouse, num_button, scale, data)
 
 
 class InputOnField:
-    def __init__(self, pos_mouse, num_button):
-        self.pos_mouse = pos_mouse
+    def __init__(self, pos_mouse, num_button, scale, data):
         self.num_button = num_button
+        self.x_field = (pos_mouse[0] - 40) // scale     # 0-119
+        self.y_field = (pos_mouse[1] - 40) // scale     # 0-59
+        self.data = data
 
         if self.num_button == 1:
             self.draw()
@@ -103,15 +104,15 @@ class InputOnField:
             self.remove()
 
     def draw(self):
-        print(1)
+        self.data[self.y_field, self.x_field] = 1
 
     def remove(self):
-        print(3)
+        self.data[self.y_field, self.x_field] = 0
 
 
 class Matrix:
     """Class for create matrix"""
-    def __init__(self, screen_resolution, randomize=True):
+    def __init__(self, screen_resolution, randomize=False):
         """
             Create matrix.
         :param screen_resolution: default screen_resolution is 1280 x 800
