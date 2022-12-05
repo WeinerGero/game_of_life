@@ -30,10 +30,13 @@ class Window:
         clock = pygame.time.Clock()
 
         field = Field(screen, screen_resolution)        # initialization Field
-        matrix = Matrix(screen_resolution)              # initialization Matrix
+        matrix = ChangeMatrix(screen_resolution)              # initialization Matrix
 
         while True:                                     # Main cycle of game
             for event in pygame.event.get():
+                if event.type == pygame.MOUSEBUTTONUP:
+                    pos_mouse = pygame.mouse.get_pos()
+                    ControlGame(pos_mouse, event.button)
                 if event.type == pygame.constants.QUIT:
                     sys.exit()                          # exit
 
@@ -76,16 +79,56 @@ class Field:
                              [self.size_x * scale - 40, i * scale])  # space of 40 px on the top and 20% screen on the down
 
 
+class ControlGame:
+    def __init__(self, pos_mouse, num_button):
+        self.pos_mouse = pos_mouse
+        self.num_button = num_button
+        print(pos_mouse, num_button)
+
+    #def detect_buttons(self):
+        # field
+        if 40 <= self.pos_mouse[0] <= 1240 \
+                and 40 <= self.pos_mouse[1] <= 640:     # (40,40), (1240, 640)
+            InputOnField(self.pos_mouse, self.num_button)
+
+
+class InputOnField:
+    def __init__(self, pos_mouse, num_button):
+        self.pos_mouse = pos_mouse
+        self.num_button = num_button
+
+        if self.num_button == 1:
+            self.draw()
+        elif self.num_button == 3:
+            self.remove()
+
+    def draw(self):
+        print(1)
+
+    def remove(self):
+        print(3)
+
+
 class Matrix:
     """Class for create matrix"""
-    def __init__(self, screen_resolution):
+    def __init__(self, screen_resolution, randomize=True):
         """
             Create matrix.
         :param screen_resolution: default screen_resolution is 1280 x 800
         """
-        self.size_x = int(screen_resolution[0] / 10)
-        self.size_y = int(screen_resolution[1] * 0.8 // 10)
-        self.data = np.zeros((60, 120), dtype=int)
+        self.size_x = int(screen_resolution[0] / 10) - 8
+        self.size_y = int(screen_resolution[1] * 0.8 // 10) - 4
+
+        if not randomize:
+            self.data = np.zeros((self.size_y, self.size_x), dtype=int)
+        else:
+            rng = np.random.default_rng()
+            self.data = rng.integers(2, size=(self.size_y, self.size_x))
+
+
+class ChangeMatrix:
+    def __init__(self, screen_resolution):
+        self.data = Matrix(screen_resolution).data
 
 
 Window()
