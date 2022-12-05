@@ -35,9 +35,11 @@ class Window:
 
         while True:                                     # Main cycle of game
             for event in pygame.event.get():
-                if event.type == pygame.MOUSEBUTTONUP:
-                    pos_mouse = pygame.mouse.get_pos()
-                    ControlGame(pos_mouse, event.button, field.scale,
+                if event.type == pygame.MOUSEMOTION:
+                    ControlGame(event.pos, event.buttons, field.scale,
+                                matrix.data)
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    ControlGame(event.pos, event.button, field.scale,
                                 matrix.data)
                 if event.type == pygame.constants.QUIT:
                     sys.exit()                          # exit
@@ -128,9 +130,9 @@ class InputOnField:
             Choose tool by button of mouse
         :return: None
         """
-        if self.num_button == 1:
+        if self.num_button == 1 or self.num_button == (1, 0, 0):
             self.draw()
-        elif self.num_button == 3:
+        elif self.num_button == 3 or self.num_button == (0, 0, 1):
             self.remove()
 
     def draw(self):
