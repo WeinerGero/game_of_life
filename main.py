@@ -1,4 +1,4 @@
-"""pygame 2.1.2 (SDL 2.0.18, Python 3.10.2)"""
+"""pygame 2.1.2 (SDL 2.0.18, Python 3.10.2), numpy version 1.23.5"""
 import sys
 import pygame
 import numpy as np
@@ -30,17 +30,23 @@ class Window:
         clock = pygame.time.Clock()
 
         field = Field(screen, screen_resolution)        # initialization Field
-        matrix = ChangeMatrix(screen_resolution)              # initialization Matrix
+        matrix = ChangeMatrix(screen_resolution)        # initialization Matrix
         draw_matrix = DrawMatrix(field.scale, screen, screen_resolution)
+        button = Button(screen)
 
         while True:                                     # Main cycle of game
             for event in pygame.event.get():
                 if event.type == pygame.MOUSEMOTION:
-                    ControlGame(event.pos, event.buttons, field.scale,
-                                matrix.data)
+                    control_game = ControlGame(event.pos, event.buttons,
+                                               field.scale, matrix.data)
+                    control_game.choose_button()
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    ControlGame(event.pos, event.button, field.scale,
-                                matrix.data)
+                    control_game = ControlGame(event.pos, event.button,
+                                               field.scale, matrix.data)
+                    if control_game.choose_button() is None:
+                        pass
+                    else:
+                        matrix.data = control_game.choose_button()
                 if event.type == pygame.constants.QUIT:
                     sys.exit()                          # exit
 
@@ -48,6 +54,9 @@ class Window:
 
             draw_matrix.draw_matrix(matrix.comparison_data())
             field.draw_field()                          # draw field
+            button.draw_button(40, 670, 'Старт', 80, 676)
+            button.draw_button(210, 670, 'Стоп', 256, 676)
+            button.draw_button(380, 670, 'Очистить', 404, 676)
 
             pygame.display.update()
             clock.tick(FPS)                             # The end of main cycle
@@ -85,6 +94,27 @@ class Field:
                              [self.size_x * scale - 40, i * scale])  # space of 40 px on the top and 20% screen on the down
 
 
+class Button:
+    def __init__(self, screen, width=150, height=50, inactive_color=GRAY,
+                 active_color=BLACK):
+        self.screen = screen
+        self.width = width
+        self.height = height
+        self.inactive_color = inactive_color
+        self.active_color = active_color
+
+    def draw_button(self, x, y, message, message_x, message_y):
+        pygame.draw.rect(self.screen, self.active_color, (x, y, self.width, self.height),1)
+        font = pygame.font.SysFont('Century Gothic', 24)
+        text = font.render(message, False, self.active_color)
+        self.screen.blit(text, (message_x, message_y))
+
+
+class Algorithm():
+    def __init__(self):
+        pass
+
+
 class ControlGame:
     """
         Class for control game
@@ -95,16 +125,25 @@ class ControlGame:
         self.scale = scale
         self.data = data
         # print(pos_mouse, num_button)
-        self.choose_button()
 
     def choose_button(self):
         """
             Method for looking buttons
-        :return: None
+        :return: None or self.data
         """
         if 40 <= self.pos_mouse[0] <= 1240 \
                 and 40 <= self.pos_mouse[1] <= 640:     # (40,40), (1240, 640)
             InputOnField(self.pos_mouse, self.num_button, self.scale, self.data)
+        elif self.num_button == 1 and 40 <= self.pos_mouse[0] <= 190 \
+                and 670 <= self.pos_mouse[1] <= 720:
+            print('Start')
+        elif self.num_button == 1 and 210 <= self.pos_mouse[0] <= 360 \
+                and 670 <= self.pos_mouse[1] <= 720:
+            print('Stop')
+        elif self.num_button == 1 and 380 <= self.pos_mouse[0] <= 530 \
+                and 670 <= self.pos_mouse[1] <= 720:
+            self.data = np.zeros((60, 120), dtype=int)
+            return self.data
 
 
 class InputOnField:
@@ -152,19 +191,14 @@ class InputOnField:
 
 class Matrix:
     """Class for create matrix"""
-    def __init__(self, screen_resolution, randomize=False):
+    def __init__(self, screen_resolution):
         """
             Create matrix.
         :param screen_resolution: default screen_resolution is 1280 x 800
         """
         self.size_x = int(screen_resolution[0] / 10) - 8
         self.size_y = int(screen_resolution[1] * 0.8 // 10) - 4
-
-        if not randomize:
-            self.data = np.zeros((self.size_y, self.size_x), dtype=int)
-        else:
-            rng = np.random.default_rng()
-            self.data = rng.integers(2, size=(self.size_y, self.size_x))
+        self.data = np.zeros((self.size_y, self.size_x), dtype=int)
 
 
 class ChangeMatrix:
