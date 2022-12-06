@@ -33,13 +33,19 @@ class Window:
         matrix = ChangeMatrix(screen_resolution)        # initialization Matrix
         draw_matrix = DrawMatrix(field.scale, screen, screen_resolution)
         button = Button(screen)
+        algorithm = Algorithm(screen_resolution, matrix.data)
+        flag = True
 
         while True:                                     # Main cycle of game
+            # Events
             for event in pygame.event.get():
+                # Mouse motion
                 if event.type == pygame.MOUSEMOTION:
                     control_game = ControlGame(event.pos, event.buttons,
                                                field.scale, matrix.data)
                     control_game.choose_button()
+
+                # Click mouse
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     control_game = ControlGame(event.pos, event.button,
                                                field.scale, matrix.data)
@@ -47,19 +53,24 @@ class Window:
                         pass
                     else:
                         matrix.data = control_game.choose_button()
+
+                # Exit
                 if event.type == pygame.constants.QUIT:
-                    sys.exit()                          # exit
+                    sys.exit()
 
-            screen.fill(bg_color)                       # create background
+            algorithm.default_algorithm()
 
+            # draw interface
+            screen.fill(bg_color)
             draw_matrix.draw_matrix(matrix.comparison_data())
-            field.draw_field()                          # draw field
+            field.draw_field()
             button.draw_button(40, 670, 'Старт', 80, 676)
             button.draw_button(210, 670, 'Стоп', 256, 676)
             button.draw_button(380, 670, 'Очистить', 404, 676)
 
+            # The end of main cycle
             pygame.display.update()
-            clock.tick(FPS)                             # The end of main cycle
+            clock.tick(FPS)
 
 
 class Field:
@@ -110,8 +121,14 @@ class Button:
         self.screen.blit(text, (message_x, message_y))
 
 
-class Algorithm():
-    def __init__(self):
+class Algorithm:
+    def __init__(self, screen_resolution, matrix, speed=1, flag=True):
+        self.screen_resolution = screen_resolution
+        self.matrix = matrix
+        self.speed = speed
+        self.flag = flag
+
+    def default_algorithm(self):
         pass
 
 
