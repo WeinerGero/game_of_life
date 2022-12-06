@@ -3,6 +3,16 @@ import sys
 import pygame
 import numpy as np
 
+# default settings
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+GRAY = (125, 125, 125)
+LIGHT_GRAY = (215, 215, 215)
+
+screen_resolution = (1280, 800)
+bg_color = WHITE
+FPS = 60
+
 
 class Field:
     """Class for drawing field"""
@@ -38,17 +48,31 @@ class Field:
 
 class Button:
     def __init__(self, screen, width=150, height=50, inactive_color=GRAY,
-                 active_color=BLACK):
+                 active_color=BLACK, target_color=LIGHT_GRAY,
+                 text_inactive_color=WHITE):
         self.screen = screen
         self.width = width
         self.height = height
         self.inactive_color = inactive_color
         self.active_color = active_color
+        self.target_color = target_color
+        self.text_inactive_color = text_inactive_color
 
-    def draw_button(self, x, y, message, message_x, message_y):
-        pygame.draw.rect(self.screen, self.active_color, (x, y, self.width, self.height),1)
+    def draw_button(self, x, y, message, message_x, message_y, action=False,
+                    target=False):
         font = pygame.font.SysFont('Century Gothic', 24)
-        text = font.render(message, False, self.active_color)
+        if action:
+            pygame.draw.rect(self.screen, self.inactive_color,
+                             (x, y, self.width, self.height), 1)
+            text = font.render(message, False, self.text_inactive_color)
+        else:
+            if target:
+                pygame.draw.rect(self.screen, self.active_color,
+                                 (x, y, self.width, self.height), 1)
+            else:
+                pygame.draw.rect(self.screen, self.target_color,
+                                 (x, y, self.width, self.height), 1)
+            text = font.render(message, False, self.active_color)
         self.screen.blit(text, (message_x, message_y))
 
 
@@ -215,15 +239,6 @@ class DrawMatrix:
             ))
 
 
-###############################################################################
-# default settings
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-GRAY = (125, 125, 125)
-
-screen_resolution = (1280, 800)
-bg_color = WHITE
-FPS = 60
 ###############################################################################
 pygame.init()                                   # initialization Pygame
 screen = pygame.display.set_mode(screen_resolution)     # create screen
