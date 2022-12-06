@@ -4,75 +4,6 @@ import pygame
 import numpy as np
 
 
-# default colors
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-GRAY = (125, 125, 125)
-
-
-class Window:
-    """Mainly interface of game"""
-    screen_resolution = (1280, 800)
-    bg_color = WHITE
-    FPS = 60
-
-    def __init__(self, screen_resolution=screen_resolution,
-                 bg_color=bg_color, FPS=FPS):
-        """
-            Here a main cycle of game. Create a window and update it.
-        :param screen_resolution: default screen_resolution is 1280 x 800
-        :param bg_color: default background color is WHITE
-        :param FPS: default FPS is 60
-        """
-        pygame.init()                                   # initialization Pygame
-        screen = pygame.display.set_mode(screen_resolution)     # create screen
-        pygame.display.set_caption('Панда и игра "Жизнь"')      # window's name
-        clock = pygame.time.Clock()
-
-        field = Field(screen, screen_resolution)        # initialization Field
-        matrix = ChangeMatrix(screen_resolution)        # initialization Matrix
-        draw_matrix = DrawMatrix(field.scale, screen, screen_resolution)
-        button = Button(screen)
-        algorithm = Algorithm(screen_resolution, matrix.data)
-        flag = True
-
-        while True:                                     # Main cycle of game
-            # Events
-            for event in pygame.event.get():
-                # Mouse motion
-                if event.type == pygame.MOUSEMOTION:
-                    control_game = ControlGame(event.pos, event.buttons,
-                                               field.scale, matrix.data)
-                    control_game.choose_button()
-
-                # Click mouse
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    control_game = ControlGame(event.pos, event.button,
-                                               field.scale, matrix.data)
-                    if control_game.choose_button() is None:
-                        pass
-                    else:
-                        matrix.data = control_game.choose_button()
-
-                # Exit
-                if event.type == pygame.constants.QUIT:
-                    sys.exit()
-
-            algorithm.default_algorithm()
-
-            # draw interface
-            screen.fill(bg_color)
-            draw_matrix.draw_matrix(matrix.comparison_data())
-            field.draw_field()
-            button.draw_button(40, 670, 'Старт', 80, 676)
-            button.draw_button(210, 670, 'Стоп', 256, 676)
-            button.draw_button(380, 670, 'Очистить', 404, 676)
-
-            # The end of main cycle
-            pygame.display.update()
-            clock.tick(FPS)
-
-
 class Field:
     """Class for drawing field"""
     scale = 10                                          # scale of cell in px
@@ -284,4 +215,60 @@ class DrawMatrix:
             ))
 
 
-Window()
+###############################################################################
+# default settings
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+GRAY = (125, 125, 125)
+
+screen_resolution = (1280, 800)
+bg_color = WHITE
+FPS = 60
+###############################################################################
+pygame.init()                                   # initialization Pygame
+screen = pygame.display.set_mode(screen_resolution)     # create screen
+pygame.display.set_caption('Панда и игра "Жизнь"')      # window's name
+clock = pygame.time.Clock()
+
+field = Field(screen, screen_resolution)        # initialization Field
+matrix = ChangeMatrix(screen_resolution)        # initialization Matrix
+draw_matrix = DrawMatrix(field.scale, screen, screen_resolution)
+button = Button(screen)
+algorithm = Algorithm(screen_resolution, matrix.data)
+flag = True
+
+while True:                                     # Main cycle of game
+    # Events
+    for event in pygame.event.get():
+        # Mouse motion
+        if event.type == pygame.MOUSEMOTION:
+            control_game = ControlGame(event.pos, event.buttons,
+                                       field.scale, matrix.data)
+            control_game.choose_button()
+
+        # Click mouse
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            control_game = ControlGame(event.pos, event.button,
+                                       field.scale, matrix.data)
+            if control_game.choose_button() is None:
+                pass
+            else:
+                matrix.data = control_game.choose_button()
+
+        # Exit
+        if event.type == pygame.constants.QUIT:
+            sys.exit()
+
+    algorithm.default_algorithm()
+
+    # draw interface
+    screen.fill(bg_color)
+    draw_matrix.draw_matrix(matrix.comparison_data())
+    field.draw_field()
+    button.draw_button(40, 670, 'Старт', 80, 676)
+    button.draw_button(210, 670, 'Стоп', 256, 676)
+    button.draw_button(380, 670, 'Очистить', 404, 676)
+
+    # The end of main cycle
+    pygame.display.update()
+    clock.tick(FPS)
