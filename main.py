@@ -63,7 +63,7 @@ class Button:
         font = pygame.font.SysFont('Century Gothic', 24)
         if action:
             pygame.draw.rect(self.screen, self.inactive_color,
-                             (x, y, self.width, self.height), 1)
+                             (x, y, self.width, self.height))
             text = font.render(message, False, self.text_inactive_color)
         else:
             if target:
@@ -91,31 +91,39 @@ class ControlGame:
     """
         Class for control game
     """
-    def __init__(self, pos_mouse, num_button, scale, data):
-        self.pos_mouse = pos_mouse
-        self.num_button = num_button
+    def __init__(self, scale):
         self.scale = scale
-        self.data = data
-        # print(pos_mouse, num_button)
 
-    def choose_button(self):
+    def choose_field(self, pos_mouse, num_button):
         """
-            Method for looking buttons
-        :return: None or self.data
+            Method for looking field
+        :return: None
         """
-        if 40 <= self.pos_mouse[0] <= 1240 \
-                and 40 <= self.pos_mouse[1] <= 640:     # (40,40), (1240, 640)
-            InputOnField(self.pos_mouse, self.num_button, self.scale, self.data)
-        elif self.num_button == 1 and 40 <= self.pos_mouse[0] <= 190 \
-                and 670 <= self.pos_mouse[1] <= 720:
-            print('Start')
-        elif self.num_button == 1 and 210 <= self.pos_mouse[0] <= 360 \
-                and 670 <= self.pos_mouse[1] <= 720:
-            print('Stop')
-        elif self.num_button == 1 and 380 <= self.pos_mouse[0] <= 530 \
-                and 670 <= self.pos_mouse[1] <= 720:
-            self.data = np.zeros((60, 120), dtype=int)
-            return self.data
+        # field
+
+        if action_button == 'Stop' or action_button is None:
+            if 40 <= pos_mouse[0] <= 1240 \
+                    and 40 <= pos_mouse[1] <= 640:     # (40,40), (1240, 640)
+                InputOnField(pos_mouse, num_button, self.scale, matrix.data)
+
+    def choose_button(self, pos_mouse, num_button, action_button):
+        # start
+        if num_button == 1 and 40 <= pos_mouse[0] <= 190 \
+                and 670 <= pos_mouse[1] <= 720:
+            return 'Start'
+
+        # stop
+        elif num_button == 1 and 210 <= pos_mouse[0] <= 360 \
+                and 670 <= pos_mouse[1] <= 720:
+            return 'Stop'
+
+        # clear
+        elif num_button == 1 and 380 <= pos_mouse[0] <= 530 \
+                and 670 <= pos_mouse[1] <= 720:
+            matrix.data = np.zeros((60, 120), dtype=int)
+            return 'Stop'
+        else:
+            return action_button
 
 
 class InputOnField:
@@ -251,24 +259,25 @@ draw_matrix = DrawMatrix(field.scale, screen, screen_resolution)
 button = Button(screen)
 algorithm = Algorithm(screen_resolution, matrix.data)
 flag = True
+action_button = None
+control_game = ControlGame(field.scale)
 
 while True:                                     # Main cycle of game
     # Events
     for event in pygame.event.get():
         # Mouse motion
         if event.type == pygame.MOUSEMOTION:
-            control_game = ControlGame(event.pos, event.buttons,
-                                       field.scale, matrix.data)
-            control_game.choose_button()
+            # control_game.choose_button(event.pos, event.buttons)
+            if action_button != 'Start':
+                control_game.choose_field(event.pos, event.buttons)
 
         # Click mouse
         if event.type == pygame.MOUSEBUTTONDOWN:
-            control_game = ControlGame(event.pos, event.button,
-                                       field.scale, matrix.data)
-            if control_game.choose_button() is None:
-                pass
-            else:
-                matrix.data = control_game.choose_button()
+            action_button = control_game.choose_button(event.pos,
+                                                       event.button,
+                                                       action_button)
+            if action_button != 'Start':
+                control_game.choose_field(event.pos, event.button)
 
         # Exit
         if event.type == pygame.constants.QUIT:
@@ -280,8 +289,18 @@ while True:                                     # Main cycle of game
     screen.fill(bg_color)
     draw_matrix.draw_matrix(matrix.comparison_data())
     field.draw_field()
-    button.draw_button(40, 670, 'Старт', 80, 676)
-    button.draw_button(210, 670, 'Стоп', 256, 676)
+
+    # action buttons
+    if action_button == 'Start':
+        button.draw_button(40, 670, 'Старт', 80, 676, action=True)
+        button.draw_button(210, 670, 'Стоп', 256, 676)
+    elif action_button == 'Stop':
+        button.draw_button(40, 670, 'Старт', 80, 676)
+        button.draw_button(210, 670, 'Стоп', 256, 676, action=True)
+    elif action_button is None:
+        button.draw_button(40, 670, 'Старт', 80, 676)
+        button.draw_button(210, 670, 'Стоп', 256, 676)
+
     button.draw_button(380, 670, 'Очистить', 404, 676)
 
     # The end of main cycle
