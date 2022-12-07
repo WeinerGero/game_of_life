@@ -8,6 +8,7 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 GRAY = (125, 125, 125)
 LIGHT_GRAY = (215, 215, 215)
+LL_GRAY = (235, 235, 235)
 
 screen_resolution = (1280, 800)
 bg_color = WHITE
@@ -48,8 +49,8 @@ class Field:
 
 class Button:
     def __init__(self, screen, width=150, height=50, inactive_color=GRAY,
-                 active_color=BLACK, target_color=LIGHT_GRAY,
-                 text_inactive_color=WHITE):
+                 active_color=LIGHT_GRAY, target_color=LL_GRAY,
+                 text_inactive_color=WHITE, text_active_color=BLACK):
         self.screen = screen
         self.width = width
         self.height = height
@@ -57,6 +58,7 @@ class Button:
         self.active_color = active_color
         self.target_color = target_color
         self.text_inactive_color = text_inactive_color
+        self.text_active_color = text_active_color
 
     def draw_button(self, x, y, message, message_x, message_y, action=False,
                     target=False):
@@ -67,12 +69,14 @@ class Button:
             text = font.render(message, False, self.text_inactive_color)
         else:
             if target:
+                pygame.draw.rect(self.screen, self.target_color,
+                                 (x, y, self.width, self.height))
                 pygame.draw.rect(self.screen, self.active_color,
                                  (x, y, self.width, self.height), 1)
             else:
-                pygame.draw.rect(self.screen, self.target_color,
+                pygame.draw.rect(self.screen, self.active_color,
                                  (x, y, self.width, self.height), 1)
-            text = font.render(message, False, self.active_color)
+            text = font.render(message, False, self.text_active_color)
         self.screen.blit(text, (message_x, message_y))
 
 
@@ -106,7 +110,22 @@ class ControlGame:
                     and 40 <= pos_mouse[1] <= 640:     # (40,40), (1240, 640)
                 InputOnField(pos_mouse, num_button, self.scale, matrix.data)
 
-    def choose_button(self, pos_mouse, num_button, action_button):
+    def target_buttons(self, event_pose):
+        if 40 <= event_pose[0] <= 190 \
+                and 670 <= event_pose[1] <= 720:
+            return 'Start'
+
+        # stop
+        elif 210 <= event_pose[0] <= 360 \
+                and 670 <= event_pose[1] <= 720:
+            return 'Stop'
+
+        # clear
+        elif 380 <= event_pose[0] <= 530 \
+                and 670 <= event_pose[1] <= 720:
+            return 'Clear'
+
+    def choose_button(self, pos_mouse, num_button):
         # start
         if num_button == 1 and 40 <= pos_mouse[0] <= 190 \
                 and 670 <= pos_mouse[1] <= 720:
@@ -159,6 +178,10 @@ class InputOnField:
             Draw on field
         :return: None
         """
+        if self.y_field == 60:
+            self.y_field = 59
+        if self.x_field == 120:
+            self.x_field = 119
         self.data[self.y_field, self.x_field] = 1
 
     def remove(self):
@@ -260,6 +283,7 @@ button = Button(screen)
 algorithm = Algorithm(screen_resolution, matrix.data)
 flag = True
 action_button = None
+target_button = None
 control_game = ControlGame(field.scale)
 
 while True:                                     # Main cycle of game
@@ -268,14 +292,13 @@ while True:                                     # Main cycle of game
         # Mouse motion
         if event.type == pygame.MOUSEMOTION:
             # control_game.choose_button(event.pos, event.buttons)
+            target_button = control_game.target_buttons(event.pos)
             if action_button != 'Start':
                 control_game.choose_field(event.pos, event.buttons)
 
         # Click mouse
         if event.type == pygame.MOUSEBUTTONDOWN:
-            action_button = control_game.choose_button(event.pos,
-                                                       event.button,
-                                                       action_button)
+            action_button = control_game.choose_button(event.pos, event.button)
             if action_button != 'Start':
                 control_game.choose_field(event.pos, event.button)
 
@@ -290,18 +313,44 @@ while True:                                     # Main cycle of game
     draw_matrix.draw_matrix(matrix.comparison_data())
     field.draw_field()
 
-    # action buttons
+    # draw buttons
     if action_button == 'Start':
         button.draw_button(40, 670, 'Старт', 80, 676, action=True)
+        if target_button == 'Stop':
+            button.draw_button(210, 670, 'Стоп', 256, 676, target=True)
+            button.draw_button(380, 670, 'Очистить', 404, 676)
+        elif target_button == 'Clear':
+            button.draw_button(210, 670, 'Стоп', 256, 676)
+            button.draw_button(380, 670, 'Очистить', 404, 676, target=True)
         button.draw_button(210, 670, 'Стоп', 256, 676)
+        button.draw_button(380, 670, 'Очистить', 404, 676)
     elif action_button == 'Stop':
-        button.draw_button(40, 670, 'Старт', 80, 676)
+        if target_button == 'Start':
+            button.draw_button(40, 670, 'Старт', 80, 676, target=True)
+            button.draw_button(380, 670, 'Очистить', 404, 676)
+        elif target_button == 'Clear':
+            button.draw_button(40, 670, 'Старт', 80, 676)
+            button.draw_button(380, 670, 'Очистить', 404, 676, target=True)
         button.draw_button(210, 670, 'Стоп', 256, 676, action=True)
+        button.draw_button(40, 670, 'Старт', 80, 676)
+        button.draw_button(380, 670, 'Очистить', 404, 676)
     elif action_button is None:
+        if target_button == 'Start':
+            button.draw_button(40, 670, 'Старт', 80, 676, target=True)
+            button.draw_button(210, 670, 'Стоп', 256, 676)
+            button.draw_button(380, 670, 'Очистить', 404, 676)
+        elif target_button == 'Stop':
+            button.draw_button(40, 670, 'Старт', 80, 676)
+            button.draw_button(210, 670, 'Стоп', 256, 676, target=True)
+            button.draw_button(380, 670, 'Очистить', 404, 676)
+        elif target_button == 'Clear':
+            button.draw_button(40, 670, 'Старт', 80, 676)
+            button.draw_button(210, 670, 'Стоп', 256, 676)
+            button.draw_button(380, 670, 'Очистить', 404, 676, target=True)
         button.draw_button(40, 670, 'Старт', 80, 676)
         button.draw_button(210, 670, 'Стоп', 256, 676)
+        button.draw_button(380, 670, 'Очистить', 404, 676)
 
-    button.draw_button(380, 670, 'Очистить', 404, 676)
 
     # The end of main cycle
     pygame.display.update()
