@@ -59,25 +59,64 @@ class Button:
         self.target_color = target_color
         self.text_inactive_color = text_inactive_color
         self.text_active_color = text_active_color
+        self.font = pygame.font.SysFont('Century Gothic', 24)
 
-    def draw_button(self, x, y, message, message_x, message_y, action=False,
-                    target=False):
-        font = pygame.font.SysFont('Century Gothic', 24)
-        if action:
-            pygame.draw.rect(self.screen, self.inactive_color,
-                             (x, y, self.width, self.height))
-            text = font.render(message, False, self.text_inactive_color)
-        else:
-            if target:
-                pygame.draw.rect(self.screen, self.target_color,
-                                 (x, y, self.width, self.height))
-                pygame.draw.rect(self.screen, self.active_color,
-                                 (x, y, self.width, self.height), 1)
-            else:
-                pygame.draw.rect(self.screen, self.active_color,
-                                 (x, y, self.width, self.height), 1)
-            text = font.render(message, False, self.text_active_color)
+    def _draw_default_button(self, x, y, message, message_x, message_y):
+        pygame.draw.rect(self.screen, self.active_color,
+                         (x, y, self.width, self.height), 1)
+        text = self.font.render(message, False, self.text_active_color)
         self.screen.blit(text, (message_x, message_y))
+
+    def _draw_action_button(self, x, y, message, message_x, message_y):
+        pygame.draw.rect(self.screen, self.inactive_color,
+                         (x, y, self.width, self.height))
+        text = self.font.render(message, False, self.text_inactive_color)
+        self.screen.blit(text, (message_x, message_y))
+
+    def _draw_targeted_button(self, x, y, message, message_x, message_y):
+        pygame.draw.rect(self.screen, self.target_color,
+                         (x, y, self.width, self.height))
+        pygame.draw.rect(self.screen, self.active_color,
+                         (x, y, self.width, self.height), 1)
+        text = self.font.render(message, False, self.text_active_color)
+        self.screen.blit(text, (message_x, message_y))
+
+    def _choose_draw_button(self, x, y, message, message_x, message_y,
+                           action_button, target_button):
+        if action_button == message:
+            self._draw_action_button(x, y, message, message_x, message_y)
+        else:
+            if target_button == message:
+                self._draw_targeted_button(x, y, message, message_x, message_y)
+            else:
+                self._draw_default_button(x, y, message, message_x, message_y)
+
+    def draw_button_start(self, action_button, target_button):
+        x = 40
+        y = 670
+        message = 'Старт'
+        message_x = 80
+        message_y = 676
+        self._choose_draw_button(x, y, message, message_x, message_y,
+                                action_button, target_button)
+
+    def draw_button_stop(self, action_button, target_button):
+        x = 210
+        y = 670
+        message = 'Стоп'
+        message_x = 256
+        message_y = 676
+        self._choose_draw_button(x, y, message, message_x, message_y,
+                                action_button, target_button)
+
+    def draw_button_clear(self, action_button, target_button):
+        x = 380
+        y = 670
+        message = 'Очистить'
+        message_x = 404
+        message_y = 676
+        self._choose_draw_button(x, y, message, message_x, message_y,
+                                action_button, target_button)
 
 
 class Algorithm:
@@ -105,7 +144,7 @@ class ControlGame:
         """
         # field
 
-        if action_button == 'Stop' or action_button is None:
+        if action_button == 'Стоп' or action_button is None:
             if 40 <= pos_mouse[0] <= 1240 \
                     and 40 <= pos_mouse[1] <= 640:     # (40,40), (1240, 640)
                 InputOnField(pos_mouse, num_button, self.scale, matrix.data)
@@ -113,34 +152,34 @@ class ControlGame:
     def target_buttons(self, event_pose):
         if 40 <= event_pose[0] <= 190 \
                 and 670 <= event_pose[1] <= 720:
-            return 'Start'
+            return 'Старт'
 
         # stop
         elif 210 <= event_pose[0] <= 360 \
                 and 670 <= event_pose[1] <= 720:
-            return 'Stop'
+            return 'Стоп'
 
         # clear
         elif 380 <= event_pose[0] <= 530 \
                 and 670 <= event_pose[1] <= 720:
-            return 'Clear'
+            return 'Очистить'
 
     def choose_button(self, pos_mouse, num_button):
         # start
         if num_button == 1 and 40 <= pos_mouse[0] <= 190 \
                 and 670 <= pos_mouse[1] <= 720:
-            return 'Start'
+            return 'Старт'
 
         # stop
         elif num_button == 1 and 210 <= pos_mouse[0] <= 360 \
                 and 670 <= pos_mouse[1] <= 720:
-            return 'Stop'
+            return 'Стоп'
 
         # clear
         elif num_button == 1 and 380 <= pos_mouse[0] <= 530 \
                 and 670 <= pos_mouse[1] <= 720:
             matrix.data = np.zeros((60, 120), dtype=int)
-            return 'Stop'
+            return 'Стоп'
         else:
             return action_button
 
@@ -194,7 +233,7 @@ class InputOnField:
 
 class Matrix:
     """Class for create matrix"""
-    def __init__(self, screen_resolution):
+    def __init__(self):
         """
             Create matrix.
         :param screen_resolution: default screen_resolution is 1280 x 800
@@ -208,13 +247,12 @@ class ChangeMatrix:
     """
         class for change matrix
     """
-    def __init__(self, screen_resolution):
+    def __init__(self):
         """
             class for change matrix
-        :param screen_resolution: default is 1280x800
         """
-        self.old_data = Matrix(screen_resolution).data
-        self.data = Matrix(screen_resolution).data
+        self.old_data = Matrix().data
+        self.data = Matrix().data
 
     def comparison_data(self):
         """
@@ -277,7 +315,7 @@ pygame.display.set_caption('Панда и игра "Жизнь"')      # window'
 clock = pygame.time.Clock()
 
 field = Field(screen, screen_resolution)        # initialization Field
-matrix = ChangeMatrix(screen_resolution)        # initialization Matrix
+matrix = ChangeMatrix()        # initialization Matrix
 draw_matrix = DrawMatrix(field.scale, screen, screen_resolution)
 button = Button(screen)
 algorithm = Algorithm(screen_resolution, matrix.data)
@@ -293,13 +331,13 @@ while True:                                     # Main cycle of game
         if event.type == pygame.MOUSEMOTION:
             # control_game.choose_button(event.pos, event.buttons)
             target_button = control_game.target_buttons(event.pos)
-            if action_button != 'Start':
+            if action_button != 'Старт':
                 control_game.choose_field(event.pos, event.buttons)
 
         # Click mouse
         if event.type == pygame.MOUSEBUTTONDOWN:
             action_button = control_game.choose_button(event.pos, event.button)
-            if action_button != 'Start':
+            if action_button != 'Старт':
                 control_game.choose_field(event.pos, event.button)
 
         # Exit
@@ -314,42 +352,9 @@ while True:                                     # Main cycle of game
     field.draw_field()
 
     # draw buttons
-    if action_button == 'Start':
-        button.draw_button(40, 670, 'Старт', 80, 676, action=True)
-        if target_button == 'Stop':
-            button.draw_button(210, 670, 'Стоп', 256, 676, target=True)
-            button.draw_button(380, 670, 'Очистить', 404, 676)
-        elif target_button == 'Clear':
-            button.draw_button(210, 670, 'Стоп', 256, 676)
-            button.draw_button(380, 670, 'Очистить', 404, 676, target=True)
-        button.draw_button(210, 670, 'Стоп', 256, 676)
-        button.draw_button(380, 670, 'Очистить', 404, 676)
-    elif action_button == 'Stop':
-        if target_button == 'Start':
-            button.draw_button(40, 670, 'Старт', 80, 676, target=True)
-            button.draw_button(380, 670, 'Очистить', 404, 676)
-        elif target_button == 'Clear':
-            button.draw_button(40, 670, 'Старт', 80, 676)
-            button.draw_button(380, 670, 'Очистить', 404, 676, target=True)
-        button.draw_button(210, 670, 'Стоп', 256, 676, action=True)
-        button.draw_button(40, 670, 'Старт', 80, 676)
-        button.draw_button(380, 670, 'Очистить', 404, 676)
-    elif action_button is None:
-        if target_button == 'Start':
-            button.draw_button(40, 670, 'Старт', 80, 676, target=True)
-            button.draw_button(210, 670, 'Стоп', 256, 676)
-            button.draw_button(380, 670, 'Очистить', 404, 676)
-        elif target_button == 'Stop':
-            button.draw_button(40, 670, 'Старт', 80, 676)
-            button.draw_button(210, 670, 'Стоп', 256, 676, target=True)
-            button.draw_button(380, 670, 'Очистить', 404, 676)
-        elif target_button == 'Clear':
-            button.draw_button(40, 670, 'Старт', 80, 676)
-            button.draw_button(210, 670, 'Стоп', 256, 676)
-            button.draw_button(380, 670, 'Очистить', 404, 676, target=True)
-        button.draw_button(40, 670, 'Старт', 80, 676)
-        button.draw_button(210, 670, 'Стоп', 256, 676)
-        button.draw_button(380, 670, 'Очистить', 404, 676)
+    button.draw_button_start(action_button, target_button)
+    button.draw_button_stop(action_button, target_button)
+    button.draw_button_clear(action_button, target_button)
 
 
     # The end of main cycle
