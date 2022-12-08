@@ -12,7 +12,6 @@ LL_GRAY = (235, 235, 235)
 
 screen_resolution = (1280, 800)
 bg_color = WHITE
-FPS = 60
 
 
 class Field:
@@ -427,9 +426,9 @@ class Algorithm:
             neighbor_of_one_zero = self.matrix_neighbors_one(index)
             if len(neighbor_of_one_zero) == 3:
                 if index[1] == 60:
-                    index[1] = 59
+                    index = (index[0], 59)
                 if index[0] == 120:
-                    index[0] = 119
+                    index = (119, index[1])
                 matrix.data[index[1], index[0]] = 1
 
     def change_one_cell(self, coordinate):
@@ -628,6 +627,7 @@ flag = True
 action_button = None
 target_button = None
 control_game = ControlGame()
+speed = 120
 
 while True:                                     # Main cycle of game
     # Events
@@ -655,8 +655,46 @@ while True:                                     # Main cycle of game
     field.draw_field()
 
     # algorithm
-    if action_button == 'Старт':
+    while action_button == 'Старт':
+        # Events
+        for event in pygame.event.get():
+            # Mouse motion
+            if event.type == pygame.MOUSEMOTION:
+                # control_game.choose_button(event.pos, event.buttons)
+                target_button = control_game.target_buttons(event.pos)
+                if action_button != 'Старт':
+                    control_game.choose_field(event.pos, event.buttons)
+
+            # Click mouse
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                action_button = control_game.choose_button(event.pos,
+                                                           event.button)
+                if action_button != 'Старт':
+                    control_game.choose_field(event.pos, event.button)
+
+            # Exit
+            if event.type == pygame.constants.QUIT:
+                sys.exit()
+
+        # draw interface
+        screen.fill(bg_color)
+        coordinates = draw_matrix.draw_matrix(matrix.comparison_data())
+        field.draw_field()
+
         algorithm.default_algorithm()
+
+        # draw buttons
+        button.draw_button_start(action_button, target_button)
+        button.draw_button_stop(action_button, target_button)
+        button.draw_button_clear(action_button, target_button)
+
+        # The end of main cycle
+        pygame.display.update()
+
+        clock.tick(speed)
+
+    # if action_button == 'Старт':
+    #    algorithm.default_algorithm()
 
     # draw buttons
     button.draw_button_start(action_button, target_button)
@@ -665,4 +703,4 @@ while True:                                     # Main cycle of game
 
     # The end of main cycle
     pygame.display.update()
-    clock.tick(FPS)
+    clock.tick(1000)
