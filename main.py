@@ -22,8 +22,6 @@ class Field:
     def __init__(self):
         """
             Count cells and draw field.
-        :param screen: control pygame display
-        :param screen_resolution: default screen_resolution is 1280 x 800
         """
         self.screen = screen                            # Get screen control
         self.size_x = int(screen_resolution[0] / 10)    # Count cells on x
@@ -49,6 +47,16 @@ class Button:
     def __init__(self, width=150, height=50, inactive_color=GRAY,
                  active_color=LIGHT_GRAY, target_color=LL_GRAY,
                  text_inactive_color=WHITE, text_active_color=BLACK):
+        """
+            Class for drawing buttons.
+        :param width: default is 150
+        :param height: default is 50
+        :param inactive_color:  default is GRAY
+        :param active_color: default is LIGHT_GRAY
+        :param target_color: default is LL_GRAY
+        :param text_inactive_color: default is WHITE
+        :param text_active_color: default is BLACK
+        """
         self.screen = screen
         self.width = width
         self.height = height
@@ -60,18 +68,45 @@ class Button:
         self.font = pygame.font.SysFont('Century Gothic', 24)
 
     def _draw_default_button(self, x, y, message, message_x, message_y):
+        """
+            draw default buttons without change color
+        :param x: x axis of button
+        :param y: y axis of button
+        :param message: message into
+        :param message_x: x axis of massage
+        :param message_y: y axis of massage
+        :return: None
+        """
         pygame.draw.rect(self.screen, self.active_color,
                          (x, y, self.width, self.height), 1)
         text = self.font.render(message, False, self.text_active_color)
         self.screen.blit(text, (message_x, message_y))
 
     def _draw_action_button(self, x, y, message, message_x, message_y):
+        """
+            draw action buttons with change color
+        :param x: x axis of button
+        :param y: y axis of button
+        :param message: message into
+        :param message_x: x axis of massage
+        :param message_y: y axis of massage
+        :return: None
+        """
         pygame.draw.rect(self.screen, self.inactive_color,
                          (x, y, self.width, self.height))
         text = self.font.render(message, False, self.text_inactive_color)
         self.screen.blit(text, (message_x, message_y))
 
     def _draw_targeted_button(self, x, y, message, message_x, message_y):
+        """
+            draw targeted button with change color
+        :param x: x axis of button
+        :param y: y axis of button
+        :param message: message into
+        :param message_x: x axis of massage
+        :param message_y: y axis of massage
+        :return: None
+        """
         pygame.draw.rect(self.screen, self.target_color,
                          (x, y, self.width, self.height))
         pygame.draw.rect(self.screen, self.active_color,
@@ -79,8 +114,17 @@ class Button:
         text = self.font.render(message, False, self.text_active_color)
         self.screen.blit(text, (message_x, message_y))
 
-    def _choose_draw_button(self, x, y, message, message_x, message_y,
-                            action_button, target_button):
+    def _choose_draw_button(self, x, y, message, message_x, message_y):
+        """
+            function for choosing what status of button now and what
+            function need to use for drawing
+        :param x: x axis of button
+        :param y: y axis of button
+        :param message: message into
+        :param message_x: x axis of massage
+        :param message_y: y axis of massage
+        :return: None
+        """
         if action_button == message:
             self._draw_action_button(x, y, message, message_x, message_y)
         else:
@@ -89,44 +133,57 @@ class Button:
             else:
                 self._draw_default_button(x, y, message, message_x, message_y)
 
-    def draw_button_start(self, action_button, target_button):
+    def draw_button_start(self):
+        """
+            function for drawing start button
+        :return: None
+        """
         x = 40
         y = 670
         message = 'Старт'
         message_x = 80
         message_y = 676
-        self._choose_draw_button(x, y, message, message_x, message_y,
-                                action_button, target_button)
+        self._choose_draw_button(x, y, message, message_x, message_y)
 
-    def draw_button_stop(self, action_button, target_button):
+    def draw_button_stop(self):
+        """
+            function for drawing stop button
+        :return: None
+        """
         x = 210
         y = 670
         message = 'Стоп'
         message_x = 256
         message_y = 676
-        self._choose_draw_button(x, y, message, message_x, message_y,
-                                action_button, target_button)
+        self._choose_draw_button(x, y, message, message_x, message_y)
 
-    def draw_button_clear(self, action_button, target_button):
+    def draw_button_clear(self):
+        """
+            function for drawing clear button
+        :return: None
+        """
         x = 380
         y = 670
         message = 'Очистить'
         message_x = 404
         message_y = 676
-        self._choose_draw_button(x, y, message, message_x, message_y,
-                                action_button, target_button)
+        self._choose_draw_button(x, y, message, message_x, message_y)
 
 
 class Algorithm:
-    def __init__(self, speed=1):
+    def __init__(self):
+        """
+         Class include algorithm of game
+        """
         self.screen_resolution = screen_resolution
-        self.speed = speed
         self.arr31 = np.zeros((3, 1), dtype=int)
         self.arr13 = np.zeros((1, 3), dtype=int)
         self.arr21 = np.zeros((2, 1), dtype=int)
 
     def detect_border_cell(self, coordinate):
         """
+
+            :param coordinate: coordinate of dot (x, y)
             left top
                         self.matrix_neighbors(coordinate, start_x=0, start_y=0)
 
@@ -190,12 +247,22 @@ class Algorithm:
             return start_y, end_y, start_x, end_x
 
     def default_algorithm(self):
+        """
+            main cycle of default algorithm of game
+        :return:  None
+        """
         self.data = np.copy(matrix.data)
         for coordinate in coordinates:
             self.change_zero_cell(coordinate)
             self.change_one_cell(coordinate)
 
     def matrix_neighbors_zero(self, coordinate, value=0):
+        """
+            count neighbors with value zero and get their indexes
+        :param coordinate: coordinate of dot (x, y)
+        :param value: default is 0
+        :return: index_list_zero or None if value is 1
+        """
         start_y, end_y, start_x, end_x = self.detect_border_cell(coordinate)
         neighbors = self.data[coordinate[1] + start_y:coordinate[1] + end_y,
                               coordinate[0] + start_x:coordinate[0] + end_x]
@@ -386,6 +453,12 @@ class Algorithm:
         return index_list_zero
 
     def matrix_neighbors_one(self, coordinate, value=1):
+        """
+            count neighbors with value one
+        :param coordinate: coordinate of dot (x, y)
+        :param value: default value is one
+        :return: count_neighbors
+        """
         start_y, end_y, start_x, end_x = self.detect_border_cell(coordinate)
         neighbors = self.data[coordinate[1]+start_y:coordinate[1]+end_y,
                               coordinate[0]+start_x:coordinate[0]+end_x]
@@ -396,6 +469,12 @@ class Algorithm:
         return count_neighbors      # [(x1,y1), (x2,y2), ... , (xn, yn)]
 
     def _shape_array21_expansion(self, neighbors):
+        """
+            Didn't use in algorithm. Transform array (2, 1)
+            to (3, 3) with 1 in centre
+        :param neighbors: array (2, 1)
+        :return: neighbors_expansion
+        """
         one_position = np.where(neighbors == 1)
         if one_position[1][0] == 0:
             neighbors_expansion = np.append(self.arr31, neighbors, axis=1)
@@ -404,6 +483,12 @@ class Algorithm:
         return neighbors_expansion
 
     def _shape_array12_expansion(self, neighbors):
+        """
+            Didn't use in algorithm. Transform array (1, 2)
+            to (3, 3) with 1 in centre
+        :param neighbors: array (1, 2)
+        :return: neighbors_expansion
+        """
         one_position = np.where(neighbors == 1)
         if one_position[0][0] == 0:
             neighbors_expansion = np.append(self.arr13, neighbors, axis=0)
@@ -412,6 +497,12 @@ class Algorithm:
         return neighbors_expansion
 
     def _shape_array11_expansion(self, neighbors):
+        """
+            Didn't use in algorithm. Transform array (1, 1)
+            to (3, 3) with 1 in centre
+        :param neighbors: array (1, 1)
+        :return: neighbors_expansion
+        """
         one_position = np.where(neighbors == 1)
         if one_position[1][0] == 0:
             neighbors_expansion = np.append(self.arr21, neighbors, axis=1)
@@ -421,6 +512,12 @@ class Algorithm:
         return neighbors_expansion
 
     def change_zero_cell(self, coordinate):
+        """
+            function for changing cell with value 0 to cell with value 1 if
+            cell satisfies the conditions
+        :param coordinate:  coordinate of dot (x, y)
+        :return: None
+        """
         index_list_zero = self.matrix_neighbors_zero(coordinate)
         for index in index_list_zero:
             neighbor_of_one_zero = self.matrix_neighbors_one(index)
@@ -432,6 +529,12 @@ class Algorithm:
                 matrix.data[index[1], index[0]] = 1
 
     def change_one_cell(self, coordinate):
+        """
+            function for changing cell with value 1 to cell with value 0 if
+            cell satisfies the conditions
+        :param coordinate:  coordinate of dot (x, y)
+        :return:
+        """
         neighbors_one_one = self.matrix_neighbors_one(coordinate)
         if len(neighbors_one_one) < 3 or len(neighbors_one_one) > 4:
             matrix.data[coordinate[1], coordinate[0]] = 0
@@ -444,31 +547,44 @@ class ControlGame:
     def choose_field(self, pos_mouse, num_button):
         """
             Method for looking field
+        :param pos_mouse: position of mouse in moment at click
+        :param num_button: a number button that is clicked on
         :return: None
         """
         # field
-
         if action_button == 'Стоп' or action_button is None:
             if 40 <= pos_mouse[0] <= 1240 \
                     and 40 <= pos_mouse[1] <= 640:     # (40,40), (1240, 640)
                 InputOnField(pos_mouse, num_button, field.scale, matrix.data)
 
     def target_buttons(self, event_pose):
+        """
+            function for detecting targeted button
+        :param event_pose: position of mouse in moment at movement
+        :return: 'Старт' / 'Стоп' / 'Очистить'
+        """
+        # start button
         if 40 <= event_pose[0] <= 190 \
                 and 670 <= event_pose[1] <= 720:
             return 'Старт'
 
-        # stop
+        # stop button
         elif 210 <= event_pose[0] <= 360 \
                 and 670 <= event_pose[1] <= 720:
             return 'Стоп'
 
-        # clear
+        # clear button
         elif 380 <= event_pose[0] <= 530 \
                 and 670 <= event_pose[1] <= 720:
             return 'Очистить'
 
     def choose_button(self, pos_mouse, num_button):
+        """
+            function for detecting button clicks
+        :param pos_mouse: position of mouse in moment at click
+        :param num_button: a number button that is clicked on
+        :return: 'Старт' / 'Стоп' / 'Очистить' / None
+        """
         # start
         if num_button == 1 and 40 <= pos_mouse[0] <= 190 \
                 and 670 <= pos_mouse[1] <= 720:
@@ -539,8 +655,7 @@ class Matrix:
     """Class for create matrix"""
     def __init__(self):
         """
-            Create matrix.
-        :param screen_resolution: default screen_resolution is 1280 x 800
+            Create matrix. Count size_x and size_y of field for matrix
         """
         self.size_x = int(screen_resolution[0] / 10) - 8
         self.size_y = int(screen_resolution[1] * 0.8 // 10) - 4
@@ -588,6 +703,12 @@ class DrawMatrix:
 
     def convert(self, compare_data):
         """
+            function for convert compare_data (set of 2 1d arrays) to list
+            of tuples
+        :param compare_data: set of 2 1d arrays with indexes of dotes
+        :return: coordinates
+        """
+        """
         (array([1, 2, 3, 4], dtype=int64), array([5, 6, 7, 8], dtype=int64))
         -> [(5, 1), (6, 2), (7, 3), (8, 4)]
         """
@@ -599,7 +720,7 @@ class DrawMatrix:
         """
             Draw matrix.
         :param compare_data:
-        :return: None
+        :return: coordinates
         """
         coordinates = self.convert(compare_data)
 
@@ -684,22 +805,19 @@ while True:                                     # Main cycle of game
         algorithm.default_algorithm()
 
         # draw buttons
-        button.draw_button_start(action_button, target_button)
-        button.draw_button_stop(action_button, target_button)
-        button.draw_button_clear(action_button, target_button)
+        button.draw_button_start()
+        button.draw_button_stop()
+        button.draw_button_clear()
 
         # The end of main cycle
         pygame.display.update()
 
         clock.tick(speed)
 
-    # if action_button == 'Старт':
-    #    algorithm.default_algorithm()
-
     # draw buttons
-    button.draw_button_start(action_button, target_button)
-    button.draw_button_stop(action_button, target_button)
-    button.draw_button_clear(action_button, target_button)
+    button.draw_button_start()
+    button.draw_button_stop()
+    button.draw_button_clear()
 
     # The end of main cycle
     pygame.display.update()
