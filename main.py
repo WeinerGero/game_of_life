@@ -775,7 +775,7 @@ while True:                                     # Main cycle of game
     coordinates = draw_matrix.draw_matrix(matrix.comparison_data())
     field.draw_field()
 
-    # algorithm
+    # game algorithm with speed
     while action_button == 'Старт':
         # Events
         for event in pygame.event.get():
