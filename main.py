@@ -20,7 +20,7 @@ class Field:
     scale = 10                                          # scale of cell in px
     b_color = GRAY                                      # color of borders
 
-    def __init__(self, screen, screen_resolution):
+    def __init__(self):
         """
             Count cells and draw field.
         :param screen: control pygame display
@@ -48,7 +48,7 @@ class Field:
 
 
 class Button:
-    def __init__(self, screen, width=150, height=50, inactive_color=GRAY,
+    def __init__(self, width=150, height=50, inactive_color=GRAY,
                  active_color=LIGHT_GRAY, target_color=LL_GRAY,
                  text_inactive_color=WHITE, text_active_color=BLACK):
         self.screen = screen
@@ -82,7 +82,7 @@ class Button:
         self.screen.blit(text, (message_x, message_y))
 
     def _choose_draw_button(self, x, y, message, message_x, message_y,
-                           action_button, target_button):
+                            action_button, target_button):
         if action_button == message:
             self._draw_action_button(x, y, message, message_x, message_y)
         else:
@@ -120,23 +120,62 @@ class Button:
 
 
 class Algorithm:
-    def __init__(self, screen_resolution, matrix, speed=1, flag=True):
+    def __init__(self, speed=1):
         self.screen_resolution = screen_resolution
-        self.matrix = matrix
         self.speed = speed
-        self.flag = flag
 
     def default_algorithm(self):
-        pass
+        for coordinate in coordinates:
+            # print(coordinate)
+            if coordinate[0] == 0 and coordinate[1] == 0:      # left top
+                print('left top')
+            elif coordinate[1] == 0 and coordinate[0] != 0 \
+                    and coordinate[0] != 119:                  # top
+                print('top')
+            elif coordinate[0] == 119 and coordinate[1] == 0:  # right top
+                print('right top')
+            elif coordinate[0] == 119 and coordinate[1] != 0 \
+                    and coordinate[1] != 59:                   # right
+                print('right')
+            elif coordinate[0] == 119 and coordinate[1] == 59:  # right down
+                print('right down')
+            elif coordinate[0] != 119 and coordinate[1] == 59 \
+                    and coordinate[0] != 0:                    # down
+                print('down')
+            elif coordinate[0] == 0 and coordinate[1] == 59:  # left down
+                print('left down')
+            elif coordinate[0] == 0 and coordinate[1] != 59 \
+                    and coordinate[1] != 0:                    # left
+                print('left')
+            else:
+                #######################
+                neighbors = matrix.data[coordinate[1]-1:coordinate[1]+2,
+                                        coordinate[0]-1:coordinate[0]+2]
+                count_neighbors = np.where(neighbors == 1)
+                ####################### def convert
+                if np.shape(count_neighbors[0])[0] < 2\
+                        or np.shape(count_neighbors[0])[0] > 3:
+                    matrix.data[coordinate[1], coordinate[0]] = 0
+
+                # для зарождения жизни. берём клетку с 1,
+                # смотрим соседей точки которые равны 0, берём их индексы
+                # np.where, конвертируем в (x, y), смотрим их соседей
+                # которые равны 1, берём их индексы np.where, конвертируем в
+                # (x, y), считаем количество: если равно 3 -> клетка
+                # становится 1. После прогоняем удаление первоначальное клетки!
+
+
+
+
+
+
+
 
 
 class ControlGame:
     """
         Class for control game
     """
-    def __init__(self, scale):
-        self.scale = scale
-
     def choose_field(self, pos_mouse, num_button):
         """
             Method for looking field
@@ -147,7 +186,7 @@ class ControlGame:
         if action_button == 'Стоп' or action_button is None:
             if 40 <= pos_mouse[0] <= 1240 \
                     and 40 <= pos_mouse[1] <= 640:     # (40,40), (1240, 640)
-                InputOnField(pos_mouse, num_button, self.scale, matrix.data)
+                InputOnField(pos_mouse, num_button, field.scale, matrix.data)
 
     def target_buttons(self, event_pose):
         if 40 <= event_pose[0] <= 190 \
@@ -253,6 +292,7 @@ class ChangeMatrix:
         """
         self.old_data = Matrix().data
         self.data = Matrix().data
+        # self.compare_set = self.comparison_data()
 
     def comparison_data(self):
         """
@@ -261,25 +301,26 @@ class ChangeMatrix:
         """
         compare_data = self.old_data == self.data
         compare_set = np.where(compare_data == False)
-        if compare_set:
-            return compare_set
+        # print(compare_set)
+        return compare_set
 
 
 class DrawMatrix:
     """
         class for drawing matrix
     """
-    def __init__(self, scale, screen, screen_resolution):
+    def __init__(self):
         """
             class for drawing matrix
         :param scale: default is 10
         :param screen: control pygame display
         :param screen_resolution: default is 1280x800
         """
-        self.scale = scale
+        self.scale = field.scale
         self.screen = screen
         self.size_x = int(screen_resolution[0] / 10) - 8
         self.size_y = int(screen_resolution[1] * 0.8 // 10) - 4
+        # self.coordinates = self.convert(compare_data)
 
     def convert(self, compare_data):
         """
@@ -296,8 +337,6 @@ class DrawMatrix:
         :param compare_data:
         :return: None
         """
-        if not compare_data:
-            return
         coordinates = self.convert(compare_data)
 
         for coordinate in coordinates:
@@ -306,6 +345,7 @@ class DrawMatrix:
                 40 + self.scale * coordinate[1],
                 self.scale, self.scale
             ))
+        return coordinates
 
 
 ###############################################################################
@@ -314,15 +354,15 @@ screen = pygame.display.set_mode(screen_resolution)     # create screen
 pygame.display.set_caption('Панда и игра "Жизнь"')      # window's name
 clock = pygame.time.Clock()
 
-field = Field(screen, screen_resolution)        # initialization Field
+field = Field()        # initialization Field
 matrix = ChangeMatrix()        # initialization Matrix
-draw_matrix = DrawMatrix(field.scale, screen, screen_resolution)
-button = Button(screen)
-algorithm = Algorithm(screen_resolution, matrix.data)
+draw_matrix = DrawMatrix()
+button = Button()
+algorithm = Algorithm()
 flag = True
 action_button = None
 target_button = None
-control_game = ControlGame(field.scale)
+control_game = ControlGame()
 
 while True:                                     # Main cycle of game
     # Events
@@ -344,18 +384,19 @@ while True:                                     # Main cycle of game
         if event.type == pygame.constants.QUIT:
             sys.exit()
 
-    algorithm.default_algorithm()
-
     # draw interface
     screen.fill(bg_color)
-    draw_matrix.draw_matrix(matrix.comparison_data())
+    coordinates = draw_matrix.draw_matrix(matrix.comparison_data())
     field.draw_field()
+
+    # algorithm
+    if action_button == 'Старт':
+        algorithm.default_algorithm()
 
     # draw buttons
     button.draw_button_start(action_button, target_button)
     button.draw_button_stop(action_button, target_button)
     button.draw_button_clear(action_button, target_button)
-
 
     # The end of main cycle
     pygame.display.update()
