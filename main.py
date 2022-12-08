@@ -29,7 +29,6 @@ class Field:
         self.screen = screen                            # Get screen control
         self.size_x = int(screen_resolution[0] / 10)    # Count cells on x
         self.size_y = int(screen_resolution[1] * 0.8 // 10)  # Count cells on y
-        # print(self.size_x, self.size_y)
 
     def draw_field(self, b_color=b_color, scale=scale):
         """
@@ -123,53 +122,320 @@ class Algorithm:
     def __init__(self, speed=1):
         self.screen_resolution = screen_resolution
         self.speed = speed
+        self.arr31 = np.zeros((3, 1), dtype=int)
+        self.arr13 = np.zeros((1, 3), dtype=int)
+        self.arr21 = np.zeros((2, 1), dtype=int)
+
+    def detect_border_cell(self, coordinate):
+        """
+            left top
+                        self.matrix_neighbors(coordinate, start_x=0, start_y=0)
+
+            top
+                        self.matrix_neighbors(coordinate, start_y=0)
+
+            right top
+                        self.matrix_neighbors(coordinate, start_y=0)
+
+            right
+                        self.matrix_neighbors(coordinate, end_x=1)
+
+            right down
+                        self.matrix_neighbors(coordinate, end_x=1, end_y=1)
+
+            down
+                        self.matrix_neighbors(coordinate, end_y=1)
+
+            left down
+                        self.matrix_neighbors(coordinate, start_x=0, end_y=1)
+
+            left
+                        self.matrix_neighbors(coordinate, start_x=0)
+            """
+        start_y = -1; end_y = 2; start_x = -1; end_x = 2
+        if coordinate[0] == 0 and coordinate[1] == 0:  # left top
+            start_x, start_y = 0, 0
+            return start_y, end_y, start_x, end_x
+
+        elif coordinate[1] == 0 and coordinate[0] != 0 \
+                and coordinate[0] != 119:  # top
+            start_y = 0
+            return start_y, end_y, start_x, end_x
+
+        elif coordinate[0] == 119 and coordinate[1] == 0:  # right top
+            start_y = 0
+            return start_y, end_y, start_x, end_x
+
+        elif coordinate[0] == 119 and coordinate[1] != 0 \
+                and coordinate[1] != 59:  # right
+            end_x = 1
+            return start_y, end_y, start_x, end_x
+
+        elif coordinate[0] == 119 and coordinate[1] == 59:  # right down
+            end_x, end_y = 1, 1
+            return start_y, end_y, start_x, end_x
+
+        elif coordinate[0] != 119 and coordinate[1] == 59 \
+                and coordinate[0] != 0:  # down
+            return start_y, end_y, start_x, end_x
+
+        elif coordinate[0] == 0 and coordinate[1] == 59:  # left down
+            start_x, end_y = 0, 1
+            return start_y, end_y, start_x, end_x
+
+        elif coordinate[0] == 0 and coordinate[1] != 59 \
+                and coordinate[1] != 0:  # left
+            start_x = 0
+            return start_y, end_y, start_x, end_x
+        else:       # not is border cell
+            return start_y, end_y, start_x, end_x
 
     def default_algorithm(self):
+        self.data = np.copy(matrix.data)
         for coordinate in coordinates:
-            # print(coordinate)
-            if coordinate[0] == 0 and coordinate[1] == 0:      # left top
-                print('left top')
-            elif coordinate[1] == 0 and coordinate[0] != 0 \
-                    and coordinate[0] != 119:                  # top
-                print('top')
-            elif coordinate[0] == 119 and coordinate[1] == 0:  # right top
-                print('right top')
-            elif coordinate[0] == 119 and coordinate[1] != 0 \
-                    and coordinate[1] != 59:                   # right
-                print('right')
-            elif coordinate[0] == 119 and coordinate[1] == 59:  # right down
-                print('right down')
-            elif coordinate[0] != 119 and coordinate[1] == 59 \
-                    and coordinate[0] != 0:                    # down
-                print('down')
-            elif coordinate[0] == 0 and coordinate[1] == 59:  # left down
-                print('left down')
-            elif coordinate[0] == 0 and coordinate[1] != 59 \
-                    and coordinate[1] != 0:                    # left
-                print('left')
-            else:
-                #######################
-                neighbors = matrix.data[coordinate[1]-1:coordinate[1]+2,
-                                        coordinate[0]-1:coordinate[0]+2]
-                count_neighbors = np.where(neighbors == 1)
-                ####################### def convert
-                if np.shape(count_neighbors[0])[0] < 2\
-                        or np.shape(count_neighbors[0])[0] > 3:
-                    matrix.data[coordinate[1], coordinate[0]] = 0
+            self.change_zero_cell(coordinate)
+            self.change_one_cell(coordinate)
 
-                # для зарождения жизни. берём клетку с 1,
-                # смотрим соседей точки которые равны 0, берём их индексы
-                # np.where, конвертируем в (x, y), смотрим их соседей
-                # которые равны 1, берём их индексы np.where, конвертируем в
-                # (x, y), считаем количество: если равно 3 -> клетка
-                # становится 1. После прогоняем удаление первоначальное клетки!
+    def matrix_neighbors_zero(self, coordinate, value=0):
+        start_y, end_y, start_x, end_x = self.detect_border_cell(coordinate)
+        neighbors = self.data[coordinate[1] + start_y:coordinate[1] + end_y,
+                              coordinate[0] + start_x:coordinate[0] + end_x]
+        # -> (array(), array())
+        count_neighbors = np.where(neighbors == value)
+        # (array(), array()) -> [(x1,y1), (x2,y2)]
+        count_neighbors = draw_matrix.convert(count_neighbors)
 
+        if value:
+            return None
 
+        shape_array = np.shape(neighbors)
+        index_list_zero = []
+        if shape_array == (3, 3):  # 4, 5, y , x
+            for coord in count_neighbors:
+                if coord == (0, 0):     # 3, 4
+                    index_list_zero.append((coordinate[0]-1,
+                                           coordinate[1]-1))
+                elif coord == (1, 0):     # 3, 5
+                    index_list_zero.append((coordinate[0],
+                                           coordinate[1]-1))
+                elif coord == (2, 0):     # 3, 6
+                    index_list_zero.append((coordinate[0]+1,
+                                           coordinate[1]-1))
+                elif coord == (0, 1):     # 4, 4
+                    index_list_zero.append((coordinate[0]-1,
+                                           coordinate[1]))
+                # elif coord == (1, 1):     # 4, 5
+                #    index_list_zero.append((coordinate[0],
+                #                           coordinate[1]))
+                elif coord == (2, 1):     # 4, 6
+                    index_list_zero.append((coordinate[0]+1,
+                                           coordinate[1]))
+                elif coord == (0, 2):     # 5, 4
+                    index_list_zero.append((coordinate[0]-1,
+                                           coordinate[1]+1))
+                elif coord == (1, 2):     # 5, 5
+                    index_list_zero.append((coordinate[0],
+                                           coordinate[1]+1))
+                elif coord == (2, 2):     # 5, 6
+                    index_list_zero.append((coordinate[0]+1,
+                                           coordinate[1]+1))
+        elif shape_array == (2, 2):
+            for coord in count_neighbors:
+                one_position = np.where(neighbors == 1)
+                if one_position[0][0] == 0:
+                    if one_position[1][0] == 0:
+                        # 1 algorithm, the first cell
+                        if coord == (0, 0):
+                            index_list_zero.append((coordinate[0],
+                                                    coordinate[1]))
+                        elif coord == (1, 0):
+                            index_list_zero.append((coordinate[0]+1,
+                                                    coordinate[1]))
+                        elif coord == (0, 1):
+                            index_list_zero.append((coordinate[0],
+                                                    coordinate[1]+1))
+                        elif coord == (1, 1):
+                            index_list_zero.append((coordinate[0]+1,
+                                                    coordinate[1]+1))
+                    else:
+                        # 2 algorithm, the second cell
+                        if coord == (0, 0):
+                            index_list_zero.append((coordinate[0]-1,
+                                                    coordinate[1]))
+                        # elif coord == (1, 0):
+                        #    index_list_zero.append((coordinate[0],
+                        #                            coordinate[1]))
+                        elif coord == (0, 1):
+                            index_list_zero.append((coordinate[0]-1,
+                                                    coordinate[1]+1))
+                        elif coord == (1, 1):
+                            index_list_zero.append((coordinate[0],
+                                                    coordinate[1]+1))
+                else:
+                    if one_position[1][0] == 0:
+                        # 3 algorithm, the third cell
+                        if coord == (0, 0):
+                            index_list_zero.append((coordinate[0],
+                                                    coordinate[1]-1))
+                        elif coord == (1, 0):
+                            index_list_zero.append((coordinate[0]+1,
+                                                    coordinate[1]-1))
+                        # elif coord == (0, 1):
+                        #    index_list_zero.append((coordinate[0],
+                        #                            coordinate[1]))
+                        elif coord == (1, 1):
+                            index_list_zero.append((coordinate[0]+1,
+                                                    coordinate[1]))
+                    else:
+                        # 4 algorithm, the 4th cell
+                        if coord == (0, 0):
+                            index_list_zero.append((coordinate[0]-1,
+                                                    coordinate[1]-1))
+                        elif coord == (1, 0):
+                            index_list_zero.append((coordinate[0],
+                                                    coordinate[1]-1))
+                        elif coord == (0, 1):
+                            index_list_zero.append((coordinate[0]-1,
+                                                    coordinate[1]))
+                        # elif coord == (1, 1):
+                        #    index_list_zero.append((coordinate[0],
+                        #                            coordinate[1]))
 
+        elif shape_array == (2, 3):
+            for coord in count_neighbors:
+                one_position = np.where(neighbors == 1)
+                if one_position[0][0] == 0:
+                    if coord == (0, 0):
+                        index_list_zero.append((coordinate[0]-1,
+                                                coordinate[1]))
+                    # elif coord == (1, 0):
+                    #    index_list_zero.append((coordinate[0],
+                    #                            coordinate[1]))
+                    elif coord == (2, 0):
+                        index_list_zero.append((coordinate[0]+1,
+                                                coordinate[1]))
+                    elif coord == (0, 1):
+                        index_list_zero.append((coordinate[0]-1,
+                                                coordinate[1]+1))
+                    elif coord == (1, 1):
+                        index_list_zero.append((coordinate[0],
+                                                coordinate[1]+1))
+                    elif coord == (2, 1):
+                        index_list_zero.append((coordinate[0]+1,
+                                                coordinate[1]+1))
+                else:
+                    if coord == (0, 0):
+                        index_list_zero.append((coordinate[0]-1,
+                                                coordinate[1]-1))
+                    elif coord == (1, 0):
+                        index_list_zero.append((coordinate[0],
+                                                coordinate[1]-1))
+                    elif coord == (2, 0):
+                        index_list_zero.append((coordinate[0]+1,
+                                                coordinate[1]-1))
+                    elif coord == (0, 1):
+                        index_list_zero.append((coordinate[0]-1,
+                                                coordinate[1]))
+                    # elif coord == (1, 1):
+                    #    index_list_zero.append((coordinate[0],
+                    #                            coordinate[1]))
+                    elif coord == (2, 1):
+                        index_list_zero.append((coordinate[0]+1,
+                                                coordinate[1]))
 
+        elif shape_array == (3, 2):
+            for coord in count_neighbors:
+                one_position = np.where(neighbors == 1)
+                if one_position[1][0] == 0:
+                    if coord == (0, 0):
+                        index_list_zero.append((coordinate[0],
+                                                coordinate[1]-1))
+                    elif coord == (1, 0):
+                        index_list_zero.append((coordinate[0]+1,
+                                                coordinate[1]-1))
+                    # elif coord == (0, 1):
+                    #    index_list_zero.append((coordinate[0],
+                    #                            coordinate[1]))
+                    elif coord == (1, 1):
+                        index_list_zero.append((coordinate[0]+1,
+                                                coordinate[1]))
+                    elif coord == (0, 2):
+                        index_list_zero.append((coordinate[0],
+                                                coordinate[1]+1))
+                    elif coord == (1, 2):
+                        index_list_zero.append((coordinate[0]+1,
+                                                coordinate[1]+1))
+                else:
+                    if coord == (0, 0):
+                        index_list_zero.append((coordinate[0]-1,
+                                                coordinate[1]-1))
+                    elif coord == (1, 0):
+                        index_list_zero.append((coordinate[0],
+                                                coordinate[1]-1))
+                    elif coord == (0, 1):
+                        index_list_zero.append((coordinate[0]-1,
+                                                coordinate[1]))
+                    # elif coord == (1, 1):
+                    #     index_list_zero.append((coordinate[0],
+                    #                            coordinate[1]))
+                    elif coord == (0, 2):
+                        index_list_zero.append((coordinate[0]+1,
+                                                coordinate[1]+1))
+                    elif coord == (1, 2):
+                        index_list_zero.append((coordinate[0],
+                                                coordinate[1]+1))
+        return index_list_zero
 
+    def matrix_neighbors_one(self, coordinate, value=1):
+        start_y, end_y, start_x, end_x = self.detect_border_cell(coordinate)
+        neighbors = self.data[coordinate[1]+start_y:coordinate[1]+end_y,
+                              coordinate[0]+start_x:coordinate[0]+end_x]
+        # -> (array(), array())
+        count_neighbors = np.where(neighbors == value)
+        # (array(), array()) -> [(x1,y1), (x2,y2)]
+        count_neighbors = draw_matrix.convert(count_neighbors)
+        return count_neighbors      # [(x1,y1), (x2,y2), ... , (xn, yn)]
 
+    def _shape_array21_expansion(self, neighbors):
+        one_position = np.where(neighbors == 1)
+        if one_position[1][0] == 0:
+            neighbors_expansion = np.append(self.arr31, neighbors, axis=1)
+        else:
+            neighbors_expansion = np.append(neighbors, self.arr31, axis=1)
+        return neighbors_expansion
 
+    def _shape_array12_expansion(self, neighbors):
+        one_position = np.where(neighbors == 1)
+        if one_position[0][0] == 0:
+            neighbors_expansion = np.append(self.arr13, neighbors, axis=0)
+        else:
+            neighbors_expansion = np.append(neighbors, self.arr13, axis=0)
+        return neighbors_expansion
+
+    def _shape_array11_expansion(self, neighbors):
+        one_position = np.where(neighbors == 1)
+        if one_position[1][0] == 0:
+            neighbors_expansion = np.append(self.arr21, neighbors, axis=1)
+        else:
+            neighbors_expansion = np.append(neighbors, self.arr21, axis=1)
+        neighbors_expansion = self._shape_array12_expansion(neighbors_expansion)
+        return neighbors_expansion
+
+    def change_zero_cell(self, coordinate):
+        index_list_zero = self.matrix_neighbors_zero(coordinate)
+        for index in index_list_zero:
+            neighbor_of_one_zero = self.matrix_neighbors_one(index)
+            if len(neighbor_of_one_zero) == 3:
+                if index[1] == 60:
+                    index[1] = 59
+                if index[0] == 120:
+                    index[0] = 119
+                matrix.data[index[1], index[0]] = 1
+
+    def change_one_cell(self, coordinate):
+        neighbors_one_one = self.matrix_neighbors_one(coordinate)
+        if len(neighbors_one_one) < 3 or len(neighbors_one_one) > 4:
+            matrix.data[coordinate[1], coordinate[0]] = 0
 
 
 class ControlGame:
@@ -301,7 +567,6 @@ class ChangeMatrix:
         """
         compare_data = self.old_data == self.data
         compare_set = np.where(compare_data == False)
-        # print(compare_set)
         return compare_set
 
 
